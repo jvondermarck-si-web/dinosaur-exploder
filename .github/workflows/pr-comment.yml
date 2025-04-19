@@ -62,9 +62,9 @@ jobs:
             jq -r --arg NAME "$name" '.artifacts[] | select(.name == $NAME) | .id' artifacts.json
           }
 
-          LINUX_ID=$(get_artifact_url "jar-linux")
-          MAC_ID=$(get_artifact_url "jar-mac")
-          WIN_ID=$(get_artifact_url "jar-win")
+          LINUX_ID=$(get_artifact_url "dinosaur-exploder-linux")
+          MAC_ID=$(get_artifact_url "dinosaur-exploder-mac")
+          WIN_ID=$(get_artifact_url "dinosaur-exploder-win")
 
           echo "LINUX_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts/$LINUX_ID" >> "$GITHUB_ENV"
           echo "MAC_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts/$MAC_ID" >> "$GITHUB_ENV"
@@ -99,10 +99,7 @@ jobs:
             
             A **new build** has been generated for this pull request:
             
-            - 📦 **Artifacts**: 
-              - 🐧 [Linux](${{ env.LINUX_URL }})
-              - 🍎 [macOS](${{ env.MAC_URL }})
-              - 🪟 [Windows](${{ env.WIN_URL }})
+            - 🎮 **Game Artifacts**: 🐧 [Linux](${{ env.LINUX_URL }}) / 🍎 [macOS](${{ env.MAC_URL }}) / 🪟 [Windows](${{ env.WIN_URL }})
             - 🧪 **Workflow Run**: [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
             - 🔖 **Commit**: `${{ env.HEAD_SHA }}`
             

@@ -1,64 +1,183 @@
-name: Upload JAR Artifact on PR
+name: Comment on PR with JAR Artifact
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_run:
+    workflows: ["Upload JAR Artifact on PR"]
+    types:
+      - completed
+
+permissions:
+  pull-requests: write
+  contents: read
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            platform: mac
-          - os: ubuntu-latest
-            platform: linux
-          - os: windows-latest
-            platform: win
-
-    name: Build for ${{ matrix.platform }}
+  comment-success:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout this repo
+        uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Build with Maven
-        run: mvn clean package
-
-      - name: Rename jar
+      - name: Download workflow run event payload
         run: |
-          mkdir output
-          cp target/dinosaur-exploder-1.0.jar output/Dinosaur-Exploder-${{ matrix.platform }}.jar
+          gh api repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }} \
+            > workflow_run_event.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload single jar artifact
-        uses: actions/upload-artifact@v4
+      - name: Extract PR number and head SHA
+        id: extract
+        run: |
+          WORKFLOW_RUN_EVENT_OBJ=$(cat workflow_run_event.json)
+
+          # Extract head_sha directly
+          HEAD_SHA=$(jq -r '.head_sha' <<< "$WORKFLOW_RUN_EVENT_OBJ")
+          echo "HEAD_SHA=$HEAD_SHA"
+
+          # Try getting PR number from embedded pull_requests (sometimes empty)
+          PR_NUMBER=$(jq -r '.pull_requests[0].number // empty' <<< "$WORKFLOW_RUN_EVENT_OBJ")
+
+          # Fallback using gh CLI if PR number not found
+          if [ -z "$PR_NUMBER" ]; then
+            echo "PR number not found in event. Falling back to gh CLI..."
+            PR_NUMBER=$(gh pr list --state open --json number,headRefOid | jq -r --arg sha "$HEAD_SHA" '.[] | select(.headRefOid == $sha) | .number')
+          fi
+
+          echo "PR_NUMBER=$PR_NUMBER"
+          echo "HEAD_SHA=$HEAD_SHA"
+
+          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_ENV"
+          echo "HEAD_SHA=$HEAD_SHA" >> "$GITHUB_ENV"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download artifact metadata
+        id: download-artifact
+        run: |
+          ARTIFACT_ID=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts \
+            | jq -r '.artifacts[0].id')
+          echo "ARTIFACT_ID=$ARTIFACT_ID"
+          echo "ARTIFACT_ID=$ARTIFACT_ID" >> "$GITHUB_ENV"
+          echo "ARTIFACT_HUMAN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts/${ARTIFACT_ID}" >> "$GITHUB_ENV"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find previous comment
+        id: find-comment
+        uses: peter-evans/find-comment@v3
         with:
-          name: jar-${{ matrix.platform }}
-          path: output/
-  
-  combine:
-    needs: build
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '<!-- build-preview-comment -->'
+
+      - name: Create or update PR comment
+        env:
+          HEAD_SHA: ${{ env.HEAD_SHA }}
+          ARTIFACT_HUMAN_URL: ${{ env.ARTIFACT_HUMAN_URL }}
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          edit-mode: replace
+          body: |-
+            <!-- build-preview-comment -->
+            
+            ## Build preview 🚀
+            [![badge]](${{ env.JOB_PATH }})
+            
+            **Thanks** for your **contribution** to this open-source project! ❤️
+            
+            A **new build** has been generated for this pull request:
+            
+            - 📦 **Artifact**: [Download JAR](${{ env.ARTIFACT_HUMAN_URL }})
+            - 🧪 **Workflow Run**: [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
+            - 🔖 **Commit**: `${{ env.HEAD_SHA }}`
+            
+            > [!TIP]
+            > This JAR lets you test the latest version of the game from this PR.
+            
+            ⏳ **Note**: Artifacts auto-expire after ~90 days.
+            
+            Happy testing & enjoy the game! 🎮
+            
+            _The DinoBot Team_ 🦖
+            
+            [badge]: https://img.shields.io/badge/Build-Success!-3fb950?logo=github&style=for-the-badge
+
+  comment-on-failure:
+    if: github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
     steps:
-      - name: Download all jar artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: jars
+      - name: Checkout this repo
+        uses: actions/checkout@v4
 
-      - name: Rename & organize jars
+      - name: Download workflow run event payload
         run: |
-          mkdir Dinosaur-Exploder
-          mv jars/jar-mac/Dinosaur-Exploder-mac.jar Dinosaur-Exploder/dinosaur-exploder-mac.jar
-          mv jars/jar-linux/Dinosaur-Exploder-linux.jar Dinosaur-Exploder/dinosaur-exploder-linux.jar
-          mv jars/jar-win/Dinosaur-Exploder-win.jar Dinosaur-Exploder/dinosaur-exploder-win.jar
+          gh api repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }} \
+            > workflow_run_event.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload combined artifact
-        uses: actions/upload-artifact@v4
+      - name: Extract PR number and head SHA
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_RUN_EVENT_OBJ: ${{ toJSON(github.event.workflow_run) }}
+        run: |
+          WORKFLOW_RUN_EVENT_OBJ=$(cat workflow_run_event.json)
+
+          # Extract head_sha directly
+          HEAD_SHA=$(jq -r '.head_sha' <<< "$WORKFLOW_RUN_EVENT_OBJ")
+          echo "HEAD_SHA=$HEAD_SHA"
+
+          # Try getting PR number from embedded pull_requests (sometimes empty)
+          PR_NUMBER=$(jq -r '.pull_requests[0].number // empty' <<< "$WORKFLOW_RUN_EVENT_OBJ")
+
+          # Fallback using gh CLI if PR number not found
+          if [ -z "$PR_NUMBER" ]; then
+            echo "PR number not found in event. Falling back to gh CLI..."
+            PR_NUMBER=$(gh pr list --state open --json number,headRefOid | jq -r --arg sha "$HEAD_SHA" '.[] | select(.headRefOid == $sha) | .number')
+          fi
+
+          echo "PR_NUMBER=$PR_NUMBER"
+          echo "HEAD_SHA=$HEAD_SHA"
+
+          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_ENV"
+          echo "HEAD_SHA=$HEAD_SHA" >> "$GITHUB_ENV"
+
+      - name: Find previous comment
+        id: find-comment
+        uses: peter-evans/find-comment@v3
         with:
-          name: dinosaur-exploder
-          path: Dinosaur-Exploder/
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '<!-- build-preview-comment -->'
+
+      - name: Leave failure comment
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          edit-mode: replace
+          body: |-
+            <!-- build-preview-comment -->
+
+            ## ❌ Build Failed
+
+            [![badge-fail]](${{
+              github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
+
+            **Thanks** for your **contribution** to this open-source project! ❤️
+            
+            Unfortunately the build for this pull request has **failed**:
+            
+            - 🚩 **Workflow Run**: [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
+            - 🔖 **Commit**: `${{ env.HEAD_SHA }}`
+            
+            > [!TIP]
+            > Please check the logs and fix any issues before re-running the workflow.
+            
+            Good luck with your debugging! 🐛 (or should I say _dino-bugging_? 🦖)
+
+            _The DinoBot Team_ 🦖
+
+            [badge-fail]: https://img.shields.io/badge/Build-Failed-red?logo=github&style=for-the-badge

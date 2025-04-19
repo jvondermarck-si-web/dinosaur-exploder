@@ -38,7 +38,7 @@ jobs:
       - name: Upload single jar artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jar-${{ matrix.platform }}
+          name: dinosaur-exploder-${{ matrix.platform }}
           path: output/
   
   combine:
@@ -53,9 +53,9 @@ jobs:
       - name: Rename & organize jars
         run: |
           mkdir Dinosaur-Exploder
-          mv jars/jar-mac/Dinosaur-Exploder-mac.jar Dinosaur-Exploder/dinosaur-exploder-mac.jar
-          mv jars/jar-linux/Dinosaur-Exploder-linux.jar Dinosaur-Exploder/dinosaur-exploder-linux.jar
-          mv jars/jar-win/Dinosaur-Exploder-win.jar Dinosaur-Exploder/dinosaur-exploder-win.jar
+          mv jars/dinosaur-exploder-mac/Dinosaur-Exploder-mac.jar Dinosaur-Exploder/dinosaur-exploder-mac.jar
+          mv jars/dinosaur-exploder-linux/Dinosaur-Exploder-linux.jar Dinosaur-Exploder/dinosaur-exploder-linux.jar
+          mv jars/dinosaur-exploder-win/Dinosaur-Exploder-win.jar Dinosaur-Exploder/dinosaur-exploder-win.jar
 
       - name: Upload combined artifact
         uses: actions/upload-artifact@v4

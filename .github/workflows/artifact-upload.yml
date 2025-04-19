@@ -37,7 +37,7 @@ jobs:
           cd output && zip Dinosaur-Exploder-${{ matrix.platform }}.zip Dinosaur-Exploder-${{ matrix.platform }}.jar
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Dinosaur-Exploder-${{ matrix.platform }}
           path: output/Dinosaur-Exploder-${{ matrix.platform }}.zip

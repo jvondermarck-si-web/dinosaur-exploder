@@ -8,6 +8,7 @@
     <artifactId>dinosaur-exploder</artifactId>
     <version>1.0</version>
     <properties>
+        <javafx.platform>mac</javafx.platform>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <source.version>11</source.version>
         <maven.compiler.version>3.8.0</maven.compiler.version>
@@ -42,6 +43,18 @@
             <artifactId>jpro-webapi</artifactId>
             <version>${jpro.version}</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${fxgl.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${fxgl.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
     </dependencies>
     <repositories>

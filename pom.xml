@@ -8,7 +8,6 @@
     <artifactId>dinosaur-exploder</artifactId>
     <version>1.0</version>
     <properties>
-        <javafx.platform>mac</javafx.platform>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <source.version>11</source.version>
         <maven.compiler.version>3.8.0</maven.compiler.version>
@@ -43,18 +42,6 @@
             <artifactId>jpro-webapi</artifactId>
             <version>${jpro.version}</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-controls</artifactId>
-            <version>${fxgl.version}</version>
-            <classifier>${javafx.platform}</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-fxml</artifactId>
-            <version>${fxgl.version}</version>
-            <classifier>${javafx.platform}</classifier>
         </dependency>
     </dependencies>
     <repositories>
@@ -91,40 +78,12 @@
                     <compress>2</compress>
                     <noHeaderFiles>true</noHeaderFiles>
                     <noManPages>true</noManPages>
-                    <launcher>Dinosaur-Exploder</launcher>
-                    <jlinkImageName>Dinosaur-Exploder</jlinkImageName>
-                    <jlinkZipName>Dinosaur-Exploder</jlinkZipName>
+                    <launcher>Start-game</launcher>
+                    <jlinkImageName>game</jlinkImageName>
+                    <jlinkZipName>fxgl-game</jlinkZipName>
                     <mainClass>${mainClassName}</mainClass>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.7.1</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <archive>
-                                <manifest>
-                                    <mainClass>${mainClassName}</mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                            <formats>
-                                <format>zip</format>
-                            </formats>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
             <!-- Maven Shade Plugin for creating a fat JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

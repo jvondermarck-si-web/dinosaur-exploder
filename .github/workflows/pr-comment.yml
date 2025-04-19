@@ -89,7 +89,8 @@ jobs:
             
             A **new build** has been generated for this pull request:
             
-            - 📦 **Artifact**: [Download JAR](${{ env.ARTIFACT_HUMAN_URL }})
+            - 📦 **Artifacts**: 
+              $(gh api repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts | jq -r '.artifacts[] | "  - [\(.name)](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts/\(.id))"')
             - 🧪 **Workflow Run**: [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
             - 🔖 **Commit**: `${{ env.HEAD_SHA }}`
             

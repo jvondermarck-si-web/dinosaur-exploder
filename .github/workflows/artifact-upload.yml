@@ -25,4 +25,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dinosaur-exploder-${{ github.event.pull_request.number }}
-          path: target/Dinosaur-Exploder/*
+          path: target/Dinosaur-Exploder

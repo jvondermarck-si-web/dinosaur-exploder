@@ -19,10 +19,10 @@ jobs:
           cache: 'maven'
 
       - name: Build project with Maven
-        run: mvn clean package
+        run: mvn clean javafx:jlink
 
       - name: Upload JAR as artifact
         uses: actions/upload-artifact@v4
         with:
           name: dinosaur-exploder-${{ github.event.pull_request.number }}
-          path: target/dinosaur-exploder-1.0.jar
+          path: target/Dinosaur-Exploder/*

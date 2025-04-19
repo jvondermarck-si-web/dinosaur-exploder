@@ -21,6 +21,12 @@ jobs:
       - name: Build project with Maven
         run: mvn clean javafx:jlink
 
+      - name: Set execute permissions for all files in bin directory
+        run: chmod -R +x Dinosaur-Exploder/bin/
+
+      - name: Set execute permissions for all files in bin directory
+        run: chmod -R 777 Dinosaur-Exploder/
+
       - name: Upload JAR as artifact
         uses: actions/upload-artifact@v4
         with:

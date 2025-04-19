@@ -78,12 +78,40 @@
                     <compress>2</compress>
                     <noHeaderFiles>true</noHeaderFiles>
                     <noManPages>true</noManPages>
-                    <launcher>Start-game</launcher>
-                    <jlinkImageName>game</jlinkImageName>
-                    <jlinkZipName>fxgl-game</jlinkZipName>
+                    <launcher>Dinosaur-Exploder</launcher>
+                    <jlinkImageName>Dinosaur-Exploder</jlinkImageName>
+                    <jlinkZipName>Dinosaur-Exploder</jlinkZipName>
                     <mainClass>${mainClassName}</mainClass>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.7.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${mainClassName}</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <formats>
+                                <format>zip</format>
+                            </formats>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Maven Shade Plugin for creating a fat JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

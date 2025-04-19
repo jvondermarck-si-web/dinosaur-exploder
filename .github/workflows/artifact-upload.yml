@@ -30,20 +30,35 @@ jobs:
       - name: Build with Maven
         run: mvn clean package
 
-      - name: Rename and zip artifact
+      - name: Rename jar
         run: |
           mkdir output
           cp target/dinosaur-exploder-1.0.jar output/Dinosaur-Exploder-${{ matrix.platform }}.jar
-          cd output
-          if ($env:OS -eq "Windows_NT") {
-            Compress-Archive -Path Dinosaur-Exploder-${{ matrix.platform }}.jar -DestinationPath Dinosaur-Exploder-${{ matrix.platform }}.zip
-          } else {
-            zip Dinosaur-Exploder-${{ matrix.platform }}.zip Dinosaur-Exploder-${{ matrix.platform }}.jar
-          }
-        shell: pwsh
 
-      - name: Upload artifact
+      - name: Upload single jar artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Dinosaur-Exploder-${{ matrix.platform }}
-          path: output/Dinosaur-Exploder-${{ matrix.platform }}.zip
+          name: jar-${{ matrix.platform }}
+          path: output/
+  
+  combine:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all jar artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: jars
+
+      - name: Rename & organize jars
+        run: |
+          mkdir Dinosaur-Exploder
+          mv jars/jar-mac/Dinosaur-Exploder-mac.jar Dinosaur-Exploder/dinosaur-exploder-mac.jar
+          mv jars/jar-linux/Dinosaur-Exploder-linux.jar Dinosaur-Exploder/dinosaur-exploder-linux.jar
+          mv jars/jar-win/Dinosaur-Exploder-win.jar Dinosaur-Exploder/dinosaur-exploder-win.jar
+
+      - name: Upload combined artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dinosaur-exploder
+          path: Dinosaur-Exploder/

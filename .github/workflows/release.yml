@@ -1,4 +1,4 @@
-name: Build & Release JARs
+name: Publish Artifact on Release
 
 on:
   release:
@@ -33,14 +33,12 @@ jobs:
       - name: Build with Maven
         run: mvn clean package
 
-      - name: Rename jar
+      - name: Rename jar with version
         run: |
           mkdir output
-          cp target/dinosaur-exploder-1.0.jar output/Dinosaur-Exploder-${{ matrix.platform }}.jar
+          cp target/dinosaur-exploder-1.0.jar output/dinosaur-exploder-${{ matrix.platform }}-${{ github.ref_name }}.jar
 
       - name: Upload jar to release
         uses: softprops/action-gh-release@v1
         with:
-          files: output/Dinosaur-Exploder-${{ matrix.platform }}.jar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: output/dinosaur-exploder-${{ matrix.platform }}-${{ github.ref_name }}.jar

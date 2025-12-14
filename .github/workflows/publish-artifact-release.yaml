@@ -37,7 +37,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add src/main/java/com/dinosaur/dinosaurexploder/constants/GameConstants.java
           git diff --staged --quiet || git commit -m "chore:  update version to ${{ steps.get_version.outputs.version }} [skip ci]"
-          git push origin HEAD: ${{ github.event.release.target_commitish }}
+          git push origin HEAD:${{ github.event.release.target_commitish }}
 
   build: 
     needs: update-version

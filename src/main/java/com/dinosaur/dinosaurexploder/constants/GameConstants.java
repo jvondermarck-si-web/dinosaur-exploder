@@ -3,7 +3,7 @@ package com.dinosaur.dinosaurexploder.constants;
 /** This holds every constant in the project */
 public class GameConstants {
 
-  public static final String VERSION = "1.2.1";
+  public static final String VERSION = ".8.1.1";
   public static final String GAME_NAME = "Dinosaur Exploder";
 
   /*

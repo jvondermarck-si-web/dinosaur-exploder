@@ -16,8 +16,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          ref:  ${{ github.event.release. target_commitish }}
+        with: 
+          ref: ${{ github.event.release.target_commitish }}
           
       - name: Extract version from tag
         id: get_version
@@ -36,34 +36,34 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add src/main/java/com/dinosaur/dinosaurexploder/constants/GameConstants.java
-          git diff --staged --quiet || git commit -m "chore: update version to ${{ steps.get_version. outputs.version }} [skip ci]"
+          git diff --staged --quiet || git commit -m "chore:  update version to ${{ steps.get_version.outputs.version }} [skip ci]"
           git push origin HEAD: ${{ github.event.release.target_commitish }}
 
-  build:
+  build: 
     needs: update-version
     runs-on: ${{ matrix.os }}
     strategy:
       matrix: 
-        include:
+        include: 
           - os: macos-latest
             platform: mac
           - os: ubuntu-latest
             platform: linux
-          - os: windows-latest
+          - os:  windows-latest
             platform: win
 
     name: Build for ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up JDK
+      - name:  Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '21'
 
       - name: Build with Maven
-        run:  mvn clean package
+        run: mvn clean package
 
       - name: Rename jar with version
         run: |

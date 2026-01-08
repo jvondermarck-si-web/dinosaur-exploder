@@ -11,18 +11,26 @@ jobs:
   update-version:
     # Needs to be run only for full releases (not drafts or pre-releases)
     if: github.event.release.prerelease == false && github.event.release.draft == false
-    runs-on:  ubuntu-latest
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}  # ← Export version as job output
 
     steps:
-      - name: Checkout code
+      - name:  Checkout code
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.release.target_commitish }}
 
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
       - name: Extract version from tag
         id: get_version
         run: |
-          # Extrait la version du tag (ex: v1.2.1 -> 1.2.1)
+          # Extract version from tag (ex: v1.2.1 -> 1.2.1)
           VERSION="${GITHUB_REF#refs/tags/}"
           VERSION="${VERSION#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -39,8 +47,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add src/main/java/com/dinosaur/dinosaurexploder/constants/GameConstants.java
-          git add pom.xml
+          git add src/main/java/com/dinosaur/dinosaurexploder/constants/GameConstants.java pom.xml
           git diff --staged --quiet || git commit -m "chore:  update version to ${{ steps.get_version.outputs.version }}"
           git push origin HEAD:${{ github.event.release.target_commitish }}
 
@@ -60,6 +67,8 @@ jobs:
     name: Build for ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.release.target_commitish }}
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -73,9 +82,10 @@ jobs:
       - name: Rename jar with version
         run: |
           mkdir output
-          cp target/dinosaur-exploder-${{ steps.get_version.outputs.version }}.jar output/dinosaur-exploder-${{ matrix.platform }}-${{ github.ref_name }}.jar
+          cp target/dinosaur-exploder-${{ needs.update-version.outputs.version }}.jar output/dinosaur-exploder-${{ matrix.platform }}-${{ github.ref_name }}.jar
+        shell: bash
 
       - name: Upload jar to release
         uses: softprops/action-gh-release@v1
         with:
-          files: output/dinosaur-exploder-${{ matrix.platform }}-${{ github.ref_name }}.jar
+          files: output/dinosaur-exploder-${{ matrix.platform }}-${{ github. ref_name }}.jar
